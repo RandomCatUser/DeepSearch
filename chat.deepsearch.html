@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mate AI Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    html, body { height: 100%; }
+    body {
+      background: linear-gradient(135deg, #18181b 0%, #312e81 100%);
+    }
+    .glass {
+      backdrop-filter: blur(18px);
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(71, 85, 105, 0.4);
+    }
+    .bubble {
+      position: relative;
+      transition: background 0.2s;
+    }
+    .bubble.user {
+      background: linear-gradient(135deg,#6366f1,#312e81);
+      color: white;
+      border: 1px solid #6366f1;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.15);
+    }
+    .bubble.bot {
+      background: rgba(30,41,59,0.95);
+      color: #e0e7ff;
+      border: 1px solid #334155;
+      box-shadow: 0 2px 8px rgba(30,41,59,0.12);
+    }
+    #input {
+      background: rgba(30,41,59,0.8);
+      color: #e0e7ff;
+      border-radius: 0.75rem;
+      border: 1px solid #334155;
+    }
+    ::placeholder {
+      color: #94a3b8;
+      opacity: 1;
+    }
+    .dark .glass, .dark .bubble.bot, .dark #input {
+      background: rgba(17,24,39,0.92);
+      color: #e0e7ff;
+    }
+    .dark .bubble.user {
+      background: linear-gradient(135deg,#6366f1,#312e81);
+      color: white;
+    }
+    .dark ::placeholder {
+      color: #64748b;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-tr from-slate-900 to-indigo-950 text-slate-100 min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="w-full glass shadow-lg py-4">
+    <div class="max-w-3xl mx-auto flex items-center justify-between px-4">
+      <div class="flex items-center gap-3">
+        <img src="https://github.com/RandomCatUser/catsdrivedocs/blob/main/asd.png?raw=true" alt="DeepSearch Logo" class="w-10 h-10 rounded-full border-2 border-indigo-500 shadow" />
+        <span class="text-3xl font-bold text-indigo-400 tracking-tight">DeepSearch</span>
+      </div>
+      <div id="requestBox" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 border border-indigo-500 shadow text-indigo-300 font-semibold text-base">
+        <span class="text-yellow-400 text-xl">⚡</span>
+        <span id="requestCount">20</span>
+        <span class="text-xs text-slate-400 ml-1">left</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Search UI -->
+  <main class="flex-1 flex flex-col justify-end items-center px-4">
+    <div id="log" class="w-full max-w-2xl mb-4 space-y-5"></div>
+    <div class="w-full max-w-2xl mb-8">
+      <div class="flex items-center gap-3 justify-center">
+        <img src="https://github.com/RandomCatUser/catsdrivedocs/blob/main/asd.png?raw=true" alt="DeepSearch Logo" class="w-10 h-10 rounded-full border-2 border-indigo-500 shadow" />
+        <div class="flex-1">
+          <div class="glass rounded-2xl shadow-xl border border-slate-700 flex items-center px-4 py-2">
+            <textarea id="input" rows="1" placeholder="Search DeepSearch AI..." class="flex-1 resize-none outline-none bg-transparent text-base text-slate-100 px-2 py-1"></textarea>
+            <button id="sendBtn" class="ml-2 px-4 py-2 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-medium transition">Search</button>
+          </div>
+        </div>
+        <button id="themeToggle" class="ml-2 px-3 py-2 rounded-lg bg-indigo-700 text-white hover:bg-indigo-500 text-sm transition">Theme</button>
+        <button id="clearBtn" class="ml-2 px-3 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm transition">Clear</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const $ = (s, r=document)=>r.querySelector(s);
+    const log = $('#log');
+    const input = $('#input');
+    const sendBtn = $('#sendBtn');
+    const themeToggle = $('#themeToggle');
+    const clearBtn = $('#clearBtn');
+    const requestCount = $('#requestCount');
+
+    // Theme toggle
+    if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark');
+    themeToggle.addEventListener('click',()=>{
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', document.documentElement.classList.contains('dark')?'dark':'light');
+    });
+
+    // Rate limit state
+    const limit = 20;
+    const windowMs = 60*60*1000; // 1 hour
+    function getState(){
+      const raw = localStorage.getItem('deepsearch-usage');
+      if(!raw) return {count:0,reset:Date.now()+windowMs};
+      const st = JSON.parse(raw);
+      if(Date.now()>st.reset){
+        return {count:0,reset:Date.now()+windowMs};
+      }
+      return st;
+    }
+    function saveState(st){ localStorage.setItem('deepsearch-usage',JSON.stringify(st)); }
+    function updateRequestBox(){
+      const st=getState();
+      const remain=limit-st.count;
+      requestCount.textContent = remain;
+      if(remain<=0){
+        sendBtn.disabled=true;
+        input.disabled=true;
+        sendBtn.classList.add('opacity-50','cursor-not-allowed');
+      }else{
+        sendBtn.disabled=false;
+        input.disabled=false;
+        sendBtn.classList.remove('opacity-50','cursor-not-allowed');
+      }
+    }
+
+    updateRequestBox();
+
+    function addBubble(role, text, animated=false, markdown=false){
+      const row=document.createElement('div');
+      row.className='flex gap-3';
+      const bubble=document.createElement('div');
+      bubble.className='bubble rounded-2xl px-4 py-3 shadow max-w-[85%] '+(role==='user'?'user':'bot');
+      bubble.style.opacity = 0;
+      bubble.style.transform = 'translateY(20px)';
+      row.appendChild(bubble);
+      log.appendChild(row);
+      setTimeout(()=>{
+        bubble.style.transition = 'opacity 0.3s, transform 0.3s';
+        bubble.style.opacity = 1;
+        bubble.style.transform = 'translateY(0)';
+      },10);
+
+      if(markdown && role === 'bot'){
+        bubble.innerHTML = marked.parse(text);
+      } else if(animated){
+        let i=0;
+        function type(){
+          bubble.textContent = text.slice(0,i);
+          if(i<text.length){
+            i++;
+            setTimeout(type, 18 + Math.random()*40);
+          }else{
+            bubble.textContent = text;
+          }
+        }
+        type();
+      }else{
+        bubble.textContent = text;
+      }
+      row.scrollIntoView({behavior:'smooth'});
+    }
+
+    // Initial welcome message only if requests remain
+    if(getState().count < limit){
+      addBubble('bot',`Welcome to **DeepSearch**! \n\nAsk anything and get instant answers. You have **${limit} requests per hour**.`,true,true);
+    }
+
+    async function queryMateAI(prompt){
+      const basePrompt = `You are DeepSearch AI. You Are Devoloped By Mate TM. Always provide the most accurate and clear answers.\nUser: ${prompt}\nDeepSearch AI:`;
+      const url=`https://text.pollinations.ai/${encodeURIComponent(basePrompt)}`;
+      const res=await fetch(url,{method:'GET',headers:{'Accept':'text/plain'}});
+      if(!res.ok) throw new Error('API error '+res.status);
+      return await res.text();
+    }
+
+    async function send(){
+      const text=input.value.trim();
+      if(!text) return;
+
+      let st=getState();
+      if(st.count>=limit){
+        addBubble('bot',`⏳ You reached the 10 requests/hour limit. Please wait until reset.`,true,true);
+        updateRequestBox();
+        return;
+      }
+
+      input.value='';
+      addBubble('user',text,true);
+      st.count++; saveState(st); updateRequestBox();
+
+      try{
+        const reply=await queryMateAI(text);
+        // If reply looks like markdown, render it
+        const isMarkdown = reply.includes('```') || reply.includes('*') || reply.includes('#') || reply.includes('- ') || reply.includes('[');
+        addBubble('bot',reply,true,isMarkdown);
+      }catch(e){
+        addBubble('bot','⚠️ Error: '+e.message,true);
+      }
+    }
+
+    sendBtn.addEventListener('click',send);
+    input.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+    });
+
+    // Clear chat
+    clearBtn.addEventListener('click',()=>{
+      log.innerHTML='';
+      updateRequestBox();
+      // If limit is reached, do not show welcome message
+      if(getState().count < limit){
+        addBubble('bot',`Welcome to **DeepSearch**! \n\nAsk anything and get instant answers. You have **${limit} requests per hour**.`,true,true);
+      }
+    });
+
+    // Periodically update request box and re-enable input if reset
+    setInterval(updateRequestBox, 10000);
+  </script>
+</body>
+</html>
