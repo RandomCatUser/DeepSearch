@@ -1,231 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mate AI Chat</title>
+  <title>DeepSearch • Pollinations AI Meta‑Search</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { mono: ['JetBrains Mono', 'monospace'] },
+          boxShadow: {
+            glow: '0 0 0 1px rgba(255,255,255,0.06), 0 8px 30px rgba(0,0,0,0.35)'
+          },
+          colors: {
+            brand: {
+              50: '#EFF6FF', 100: '#DBEAFE', 200: '#BFDBFE', 300: '#93C5FD',
+              400: '#60A5FA', 500: '#3B82F6', 600: '#2563EB', 700: '#1D4ED8', 800: '#1E40AF', 900: '#1E3A8A'
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    html, body { height: 100%; }
-    body {
-      background: linear-gradient(135deg, #18181b 0%, #312e81 100%);
-    }
-    .glass {
-      backdrop-filter: blur(18px);
-      background: rgba(30, 41, 59, 0.85);
-      border: 1px solid rgba(71, 85, 105, 0.4);
-    }
-    .bubble {
-      position: relative;
-      transition: background 0.2s;
-    }
-    .bubble.user {
-      background: linear-gradient(135deg,#6366f1,#312e81);
-      color: white;
-      border: 1px solid #6366f1;
-      box-shadow: 0 2px 8px rgba(99,102,241,0.15);
-    }
-    .bubble.bot {
-      background: rgba(30,41,59,0.95);
-      color: #e0e7ff;
-      border: 1px solid #334155;
-      box-shadow: 0 2px 8px rgba(30,41,59,0.12);
-    }
-    #input {
-      background: rgba(30,41,59,0.8);
-      color: #e0e7ff;
-      border-radius: 0.75rem;
-      border: 1px solid #334155;
-    }
-    ::placeholder {
-      color: #94a3b8;
-      opacity: 1;
-    }
-    .dark .glass, .dark .bubble.bot, .dark #input {
-      background: rgba(17,24,39,0.92);
-      color: #e0e7ff;
-    }
-    .dark .bubble.user {
-      background: linear-gradient(135deg,#6366f1,#312e81);
-      color: white;
-    }
-    .dark ::placeholder {
-      color: #64748b;
-    }
+    :root { color-scheme: dark; }
+    body { background: radial-gradient(1200px 600px at 10% -10%, rgba(59,130,246,.18), transparent),
+                    radial-gradient(800px 600px at 90% 10%, rgba(16,185,129,.12), transparent),
+                    #0b1020; }
+    .glass { backdrop-filter: blur(14px) saturate(140%); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
+    .btn { @apply px-4 py-2 rounded-2xl font-semibold hover:opacity-90 transition; }
+    .btn-primary { @apply bg-brand-600 text-white; }
+    .btn-ghost { @apply bg-white/5 text-white; }
+    .kbd { @apply px-2 py-1 rounded-md bg-white/10 border border-white/20 text-xs; }
   </style>
 </head>
-<body class="bg-gradient-to-tr from-slate-900 to-indigo-950 text-slate-100 min-h-screen flex flex-col">
-  <!-- Header -->
-  <header class="w-full glass shadow-lg py-4">
-    <div class="max-w-3xl mx-auto flex items-center justify-between px-4">
-      <div class="flex items-center gap-3">
-        <img src="https://github.com/RandomCatUser/catsdrivedocs/blob/main/asd.png?raw=true" alt="DeepSearch Logo" class="w-10 h-10 rounded-full border-2 border-indigo-500 shadow" />
-        <span class="text-3xl font-bold text-indigo-400 tracking-tight">DeepSearch</span>
-      </div>
-      <div id="requestBox" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 border border-indigo-500 shadow text-indigo-300 font-semibold text-base">
-        <span class="text-yellow-400 text-xl">⚡</span>
-        <span id="requestCount">20</span>
-        <span class="text-xs text-slate-400 ml-1">left</span>
+<body class="font-mono text-white/90">
+  <header class="sticky top-0 z-50">
+    <div class="glass shadow-glow">
+      <div class="max-w-6xl mx-auto flex items-center gap-4 p-3">
+        <div class="text-xl font-bold tracking-tight">DeepSearch</div>
+        <div class="hidden md:flex items-center gap-2 text-xs text-white/70">
+          <span class="kbd">/</span><span>focus</span>
+          <span class="kbd">Enter</span><span>run</span>
+        </div>
+        <div class="ml-auto flex items-center gap-2 text-sm">
+          <button id="helpBtn" class="btn btn-ghost">Help</button>
+          <a href="https://text.pollinations.ai/models" target="_blank" class="btn btn-ghost">Text Models</a>
+          <a href="https://image.pollinations.ai/models" target="_blank" class="btn btn-ghost">Image Models</a>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Search UI -->
-  <main class="flex-1 flex flex-col justify-end items-center px-4">
-    <div id="log" class="w-full max-w-2xl mb-4 space-y-5"></div>
-    <div class="w-full max-w-2xl mb-8">
-      <div class="flex items-center gap-3 justify-center">
-        <img src="https://github.com/RandomCatUser/catsdrivedocs/blob/main/asd.png?raw=true" alt="DeepSearch Logo" class="w-10 h-10 rounded-full border-2 border-indigo-500 shadow" />
-        <div class="flex-1">
-          <div class="glass rounded-2xl shadow-xl border border-slate-700 flex items-center px-4 py-2">
-            <textarea id="input" rows="1" placeholder="Search DeepSearch AI..." class="flex-1 resize-none outline-none bg-transparent text-base text-slate-100 px-2 py-1"></textarea>
-            <button id="sendBtn" class="ml-2 px-4 py-2 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-medium transition">Search</button>
+  <main class="max-w-6xl mx-auto px-4 pb-28">
+    <!-- Search Bar -->
+    <section class="mt-10">
+      <div class="glass rounded-3xl shadow-glow p-4 md:p-6">
+        <form id="searchForm" class="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+          <div class="relative flex-1">
+            <input id="query" type="text" placeholder="Ask anything… (e.g., \"What is quantum tunneling?\")" class="w-full bg-transparent outline-none rounded-2xl border border-white/20 px-4 py-3 pr-28" required />
+            <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <select id="mode" class="bg-white/10 border border-white/20 rounded-xl px-2 py-1 text-sm">
+                <option value="answer">Answer</option>
+                <option value="images">Images</option>
+                <option value="audio">Audio</option>
+              </select>
+              <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+          </div>
+        </form>
+        <div class="mt-3 text-xs text-white/60 flex flex-wrap gap-3">
+          <span>Requests left this hour: <b id="quotaLeft">10</b> / 10</span>
+          <span class="hidden sm:inline">•</span>
+          <span>Model: <select id="textModel" class="bg-white/10 border border-white/20 rounded-md px-2 py-0.5"></select></span>
+          <span>Image Model: <select id="imageModel" class="bg-white/10 border border-white/20 rounded-md px-2 py-0.5"></select></span>
+          <span>Voice: <select id="voice" class="bg-white/10 border border-white/20 rounded-md px-2 py-0.5">
+            <option>alloy</option>
+            <option>verse</option>
+            <option>amber</option>
+            <option>coral</option>
+          </select></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content Grid -->
+    <section class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Answer / Images / Audio Output -->
+      <div class="lg:col-span-2 glass rounded-3xl shadow-glow p-5 min-h-[320px]">
+        <div id="result" class="prose prose-invert max-w-none">
+          <p class="text-white/70">Results will appear here. Try a query, then switch modes (Answer / Images / Audio).</p>
+        </div>
+      </div>
+
+      <!-- Live Feeds -->
+      <aside class="glass rounded-3xl shadow-glow p-5">
+        <h3 class="font-bold mb-3">Live Feeds</h3>
+        <div class="space-y-4">
+          <div>
+            <div class="text-sm font-semibold mb-1">Text Feed</div>
+            <div id="textFeed" class="text-xs max-h-44 overflow-auto space-y-2"></div>
+          </div>
+          <div>
+            <div class="text-sm font-semibold mb-1">Image Feed</div>
+            <div id="imageFeed" class="grid grid-cols-3 gap-2 max-h-44 overflow-auto"></div>
           </div>
         </div>
-        <button id="themeToggle" class="ml-2 px-3 py-2 rounded-lg bg-indigo-700 text-white hover:bg-indigo-500 text-sm transition">Theme</button>
-        <button id="clearBtn" class="ml-2 px-3 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm transition">Clear</button>
-      </div>
-    </div>
+      </aside>
+    </section>
+
+    <!-- Gallery (for Images mode) -->
+    <section id="gallerySection" class="hidden mt-6 glass rounded-3xl shadow-glow p-5">
+      <h3 class="font-bold mb-3">Image Results</h3>
+      <div id="gallery" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+    </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <template id="feedTextItem">
+    <div class="p-2 bg-white/5 rounded-xl border border-white/10"></div>
+  </template>
+
+  <template id="imageCardTpl">
+    <a class="block group" target="_blank" rel="noreferrer">
+      <img class="w-full h-44 object-cover rounded-xl border border-white/10 group-hover:opacity-90 transition" />
+      <div class="mt-1 text-xs text-white/60 line-clamp-2"></div>
+    </a>
+  </template>
+
+  <dialog id="helpDlg" class="glass rounded-3xl p-0 border-none w-[680px] max-w-[96vw]">
+    <div class="p-6 space-y-4">
+      <h2 class="text-xl font-bold">How it works</h2>
+      <ol class="list-decimal pl-5 space-y-1 text-sm text-white/80">
+        <li>Type your query. Choose a mode: <b>Answer</b> (text generation), <b>Images</b> (image generation), or <b>Audio</b> (TTS).
+        </li>
+        <li>Pick your preferred <b>model</b> from the dropdowns (auto‑loaded from Pollinations <code>/models</code> endpoints).
+        </li>
+        <li>We enforce a local rate‑limit: <b>10 requests/hour</b> stored in <code>localStorage</code>.</li>
+      </ol>
+      <div class="text-xs text-white/60">Endpoints used:
+        <ul class="list-disc pl-5">
+          <li><code>GET https://text.pollinations.ai/{prompt}?model=&lt;model&gt;</code></li>
+          <li><code>GET https://image.pollinations.ai/prompt/{prompt}?model=&lt;model&gt;</code></li>
+          <li><code>GET https://text.pollinations.ai/{prompt}?model=openai-audio&voice=&lt;voice&gt;</code></li>
+          <li><code>GET https://text.pollinations.ai/feed</code>, <code>GET https://image.pollinations.ai/feed</code></li>
+        </ul>
+      </div>
+      <div class="flex justify-end gap-2"><button id="closeHelp" class="btn btn-primary">Close</button></div>
+    </div>
+  </dialog>
+
   <script>
-    const $ = (s, r=document)=>r.querySelector(s);
-    const log = $('#log');
-    const input = $('#input');
-    const sendBtn = $('#sendBtn');
-    const themeToggle = $('#themeToggle');
-    const clearBtn = $('#clearBtn');
-    const requestCount = $('#requestCount');
+    const els = {
+      form: document.getElementById('searchForm'),
+      query: document.getElementById('query'),
+      mode: document.getElementById('mode'),
+      result: document.getElementById('result'),
+      textModel: document.getElementById('textModel'),
+      imageModel: document.getElementById('imageModel'),
+      voice: document.getElementById('voice'),
+      quotaLeft: document.getElementById('quotaLeft'),
+      gallery: document.getElementById('gallery'),
+      gallerySection: document.getElementById('gallerySection'),
+      textFeed: document.getElementById('textFeed'),
+      imageFeed: document.getElementById('imageFeed'),
+      helpBtn: document.getElementById('helpBtn'),
+      helpDlg: document.getElementById('helpDlg'),
+      closeHelp: document.getElementById('closeHelp'),
+    };
 
-    // Theme toggle
-    if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark');
-    themeToggle.addEventListener('click',()=>{
-      document.documentElement.classList.toggle('dark');
-      localStorage.setItem('theme', document.documentElement.classList.contains('dark')?'dark':'light');
-    });
+    // --- Local Rate Limit (10/hour) ---
+    const LIMIT = 10;
+    function loadQuota(){
+      const sliceStart = Math.floor(Date.now()/3600000)*3600000; // hour bucket
+      const key = 'quota:'+sliceStart;
+      const used = Number(localStorage.getItem(key) || 0);
+      els.quotaLeft.textContent = Math.max(0, LIMIT - used);
+      return { key, used };
+    }
+    function incQuota(key, used){
+      localStorage.setItem(key, used+1);
+      els.quotaLeft.textContent = Math.max(0, LIMIT - (used+1));
+    }
 
-    // Rate limit state
-    const limit = 20;
-    const windowMs = 60*60*1000; // 1 hour
-    function getState(){
-      const raw = localStorage.getItem('deepsearch-usage');
-      if(!raw) return {count:0,reset:Date.now()+windowMs};
-      const st = JSON.parse(raw);
-      if(Date.now()>st.reset){
-        return {count:0,reset:Date.now()+windowMs};
+    // --- Helpers ---
+    function mdToHtml(md){
+      // very light markdown to html (bold, code, links, breaks)
+      return md
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+        .replace(/`([^`]+)`/g,'<code>$1</code>')
+        .replace(/\[(.*?)\]\((.*?)\)/g,'<a class="underline" href="$2" target="_blank" rel="noreferrer">$1<\/a>')
+        .replace(/\n/g,'<br/>');
+    }
+
+    async function fetchTextModels(){
+      try {
+        const res = await fetch('https://text.pollinations.ai/models');
+        const models = await res.json();
+        els.textModel.innerHTML = '';
+        models.forEach(m=>{
+          const o = document.createElement('option');
+          o.value = m.name || m.id || m;
+          o.textContent = m.name || m.id || m;
+          if(/deepseek|qwen|phi|llama|mixtral/i.test(o.value)) o.selected = true;
+          els.textModel.appendChild(o);
+        });
+      } catch(e){
+        els.textModel.innerHTML = '<option>deepseek-r1:free</option>';
       }
-      return st;
     }
-    function saveState(st){ localStorage.setItem('deepsearch-usage',JSON.stringify(st)); }
-    function updateRequestBox(){
-      const st=getState();
-      const remain=limit-st.count;
-      requestCount.textContent = remain;
-      if(remain<=0){
-        sendBtn.disabled=true;
-        input.disabled=true;
-        sendBtn.classList.add('opacity-50','cursor-not-allowed');
-      }else{
-        sendBtn.disabled=false;
-        input.disabled=false;
-        sendBtn.classList.remove('opacity-50','cursor-not-allowed');
+
+    async function fetchImageModels(){
+      try {
+        const res = await fetch('https://image.pollinations.ai/models');
+        const models = await res.json();
+        els.imageModel.innerHTML = '';
+        models.forEach(m=>{
+          const o = document.createElement('option');
+          o.value = m.name || m.id || m;
+          o.textContent = m.name || m.id || m;
+          els.imageModel.appendChild(o);
+        });
+      } catch(e){
+        els.imageModel.innerHTML = '<option>flux</option><option>sdxl</option>';
       }
     }
 
-    updateRequestBox();
-
-    function addBubble(role, text, animated=false, markdown=false){
-      const row=document.createElement('div');
-      row.className='flex gap-3';
-      const bubble=document.createElement('div');
-      bubble.className='bubble rounded-2xl px-4 py-3 shadow max-w-[85%] '+(role==='user'?'user':'bot');
-      bubble.style.opacity = 0;
-      bubble.style.transform = 'translateY(20px)';
-      row.appendChild(bubble);
-      log.appendChild(row);
-      setTimeout(()=>{
-        bubble.style.transition = 'opacity 0.3s, transform 0.3s';
-        bubble.style.opacity = 1;
-        bubble.style.transform = 'translateY(0)';
-      },10);
-
-      if(markdown && role === 'bot'){
-        bubble.innerHTML = marked.parse(text);
-      } else if(animated){
-        let i=0;
-        function type(){
-          bubble.textContent = text.slice(0,i);
-          if(i<text.length){
-            i++;
-            setTimeout(type, 18 + Math.random()*40);
-          }else{
-            bubble.textContent = text;
-          }
-        }
-        type();
-      }else{
-        bubble.textContent = text;
-      }
-      row.scrollIntoView({behavior:'smooth'});
-    }
-
-    // Initial welcome message only if requests remain
-    if(getState().count < limit){
-      addBubble('bot',`Welcome to **DeepSearch**! \n\nAsk anything and get instant answers. You have **${limit} requests per hour**.`,true,true);
-    }
-
-    async function queryMateAI(prompt){
-      const basePrompt = `You are DeepSearch AI. You Are Devoloped By Mate TM. Always provide the most accurate and clear answers.\nUser: ${prompt}\nDeepSearch AI:`;
-      const url=`https://text.pollinations.ai/${encodeURIComponent(basePrompt)}`;
-      const res=await fetch(url,{method:'GET',headers:{'Accept':'text/plain'}});
-      if(!res.ok) throw new Error('API error '+res.status);
-      return await res.text();
-    }
-
-    async function send(){
-      const text=input.value.trim();
-      if(!text) return;
-
-      let st=getState();
-      if(st.count>=limit){
-        addBubble('bot',`⏳ You reached the 10 requests/hour limit. Please wait until reset.`,true,true);
-        updateRequestBox();
+    // --- Execute Query ---
+    async function handleSearch(evt){
+      evt.preventDefault();
+      const { key, used } = loadQuota();
+      if(used >= LIMIT){
+        els.result.innerHTML = '<p class="text-red-300">Hourly limit reached (10). Try again next hour.</p>';
         return;
       }
+      const q = els.query.value.trim();
+      if(!q) return;
 
-      input.value='';
-      addBubble('user',text,true);
-      st.count++; saveState(st); updateRequestBox();
-
-      try{
-        const reply=await queryMateAI(text);
-        // If reply looks like markdown, render it
-        const isMarkdown = reply.includes('```') || reply.includes('*') || reply.includes('#') || reply.includes('- ') || reply.includes('[');
-        addBubble('bot',reply,true,isMarkdown);
-      }catch(e){
-        addBubble('bot','⚠️ Error: '+e.message,true);
+      if(els.mode.value === 'answer'){
+        await runAnswer(q, els.textModel.value, key, used);
+      } else if(els.mode.value === 'images'){
+        await runImages(q, els.imageModel.value, key, used);
+      } else {
+        await runAudio(q, els.voice.value, key, used);
       }
     }
 
-    sendBtn.addEventListener('click',send);
-    input.addEventListener('keydown',e=>{
-      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
-    });
-
-    // Clear chat
-    clearBtn.addEventListener('click',()=>{
-      log.innerHTML='';
-      updateRequestBox();
-      // If limit is reached, do not show welcome message
-      if(getState().count < limit){
-        addBubble('bot',`Welcome to **DeepSearch**! \n\nAsk anything and get instant answers. You have **${limit} requests per hour**.`,true,true);
+    async function runAnswer(q, model, key, used){
+      els.gallerySection.classList.add('hidden');
+      els.result.innerHTML = '<div class="animate-pulse text-white/60">Thinking…</div>';
+      try {
+        const url = `https://text.pollinations.ai/${encodeURIComponent(q)}?model=${encodeURIComponent(model)}`;
+        const res = await fetch(url);
+        const text = await res.text();
+        els.result.innerHTML = `<article class='leading-7'>${mdToHtml(text)}</article>`;
+        incQuota(key, used);
+      } catch (e) {
+        console.error(e);
+        els.result.innerHTML = '<p class="text-red-300">Failed to fetch answer.</p>';
       }
-    });
+    }
 
-    // Periodically update request box and re-enable input if reset
-    setInterval(updateRequestBox, 10000);
+    async function runImages(q, model, key, used){
+      els.result.innerHTML = '<div class="text-white/70">Generating images…</div>';
+      els.gallery.innerHTML = '';
+      els.gallerySection.classList.remove('hidden');
+      const n = 8; // number of thumbs
+      try {
+        const items = Array.from({length:n}).map((_,i)=>{
+          const seed = Date.now()+i;
+          const src = `https://image.pollinations.ai/prompt/${encodeURIComponent(q)}?model=${encodeURIComponent(model)}&seed=${seed}`;
+          return { src, prompt: q };
+        });
+        items.forEach(({src,prompt})=>{
+          const tpl = document.getElementById('imageCardTpl').content.cloneNode(true);
+          const a = tpl.querySelector('a');
+          const img = tpl.querySelector('img');
+          const cap = tpl.querySelector('div');
+          a.href = src; img.src = src; cap.textContent = prompt;
+          els.gallery.appendChild(tpl);
+        });
+        els.result.innerHTML = '<p class="text-white/70">Scroll for generated images. Click any image to open full size.</p>';
+        incQuota(key, used);
+      } catch(e){
+        console.error(e);
+        els.result.innerHTML = '<p class="text-red-300">Failed to generate images.</p>';
+      }
+    }
+
+    async function runAudio(q, voice, key, used){
+      els.gallerySection.classList.add('hidden');
+      els.result.innerHTML = '<div class="text-white/70">Generating audio…</div>';
+      try {
+        const url = `https://text.pollinations.ai/${encodeURIComponent(q)}?model=openai-audio&voice=${encodeURIComponent(voice)}`;
+        const res = await fetch(url);
+        const text = await res.text();
+        // The endpoint returns text or an audio URL depending on backend; support both cases
+        let audioUrl = '';
+        if(/^https?:\/\//i.test(text.trim())) { audioUrl = text.trim(); }
+        else {
+          // If we actually got a transcript, synthesize via <audio> using a data URL fetch if possible (best effort fallback)
+          // Here we assume the API returned a URL-less body; we just speak it with SpeechSynthesis as a fallback.
+          const p = new SpeechSynthesisUtterance(text);
+          speechSynthesis.speak(p);
+          els.result.innerHTML = `<p class='text-white/70'>Playing via browser TTS. Text:<br><span class='text-white/90'>${mdToHtml(text)}</span></p>`;
+          incQuota(key, used);
+          return;
+        }
+        const audio = document.createElement('audio');
+        audio.controls = true; audio.src = audioUrl; audio.autoplay = true;
+        els.result.innerHTML = '';
+        els.result.appendChild(audio);
+        incQuota(key, used);
+      } catch(e){
+        console.error(e);
+        els.result.innerHTML = '<p class="text-red-300">Failed to generate audio.</p>';
+      }
+    }
+
+    // --- Live Feeds ---
+    async function loadFeeds(){
+      try {
+        const [tf, ifd] = await Promise.all([
+          fetch('https://text.pollinations.ai/feed').then(r=>r.json()).catch(()=>[]),
+          fetch('https://image.pollinations.ai/feed').then(r=>r.json()).catch(()=>[]),
+        ]);
+        // text feed
+        els.textFeed.innerHTML = '';
+        (tf || []).slice(0,20).forEach(item=>{
+          const n = document.getElementById('feedTextItem').content.cloneNode(true);
+          n.querySelector('div').textContent = (item?.prompt || item?.text || JSON.stringify(item)).slice(0,180);
+          els.textFeed.appendChild(n);
+        });
+        // image feed
+        els.imageFeed.innerHTML = '';
+        (ifd || []).slice(0,12).forEach(item=>{
+          const img = document.createElement('img');
+          img.loading = 'lazy';
+          img.referrerPolicy = 'no-referrer';
+          img.className = 'w-full h-20 object-cover rounded-xl border border-white/10';
+          const src = item?.url || item?.image || item?.link || item?.src;
+          if(src) img.src = src; else return;
+          els.imageFeed.appendChild(img);
+        });
+      } catch(e){ console.warn('feed error', e); }
+    }
+
+    // --- UI wiring ---
+    els.form.addEventListener('submit', handleSearch);
+    document.addEventListener('keydown', (e)=>{ if(e.key === '/' && document.activeElement !== els.query){ e.preventDefault(); els.query.focus(); } });
+    els.helpBtn.addEventListener('click', ()=> els.helpDlg.showModal());
+    els.closeHelp.addEventListener('click', ()=> els.helpDlg.close());
+
+    // init
+    loadQuota();
+    fetchTextModels();
+    fetchImageModels();
+    loadFeeds();
+    setInterval(loadQuota, 10_000);
+    setInterval(loadFeeds, 30_000);
   </script>
 </body>
 </html>
