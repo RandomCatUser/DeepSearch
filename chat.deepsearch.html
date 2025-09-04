@@ -56,29 +56,29 @@
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 pb-28">
+  <main class="max-w-6xl mx-auto px-2 sm:px-4 pb-28">
     <!-- Search Bar -->
-    <section class="mt-10">
-      <div class="glass rounded-3xl shadow-glow p-4 md:p-6">
-        <form id="searchForm" class="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+    <section class="mt-6 sm:mt-10">
+      <div class="glass rounded-2xl sm:rounded-3xl shadow-glow p-3 sm:p-4 md:p-6">
+        <form id="searchForm" class="flex flex-col md:flex-row gap-2 sm:gap-3 items-stretch md:items-center">
           <div class="relative flex-1">
-            <input id="query" type="text" placeholder="Ask anything… (e.g., \"What is quantum tunneling?\")" class="w-full bg-transparent outline-none rounded-2xl border border-white/20 px-4 py-3 pr-28" required />
-            <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-              <select id="mode" class="bg-white/10 border border-white/20 rounded-xl px-2 py-1 text-sm">
+            <input id="query" type="text" placeholder="Ask anything… (e.g., 'What is quantum tunneling?')" class="w-full bg-transparent outline-none rounded-xl sm:rounded-2xl border border-white/20 px-3 sm:px-4 py-2 sm:py-3 pr-24 sm:pr-28 text-sm sm:text-base" required />
+            <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+              <select id="mode" class="bg-white/10 border border-white/20 rounded-lg sm:rounded-xl px-1 sm:px-2 py-0.5 sm:py-1 text-xs sm:text-sm">
                 <option value="answer">Answer</option>
                 <option value="images">Images</option>
                 <option value="audio">Audio</option>
               </select>
-              <button class="btn btn-primary" type="submit">Search</button>
+              <button class="btn btn-primary text-xs sm:text-sm" type="submit">Search</button>
             </div>
           </div>
         </form>
-        <div class="mt-3 text-xs text-white/60 flex flex-wrap gap-3">
+        <div class="mt-2 sm:mt-3 text-xs text-white/60 flex flex-wrap gap-2 sm:gap-3">
           <span>Requests left this hour: <b id="quotaLeft">10</b> / 10</span>
           <span class="hidden sm:inline">•</span>
-          <span>Model: <select id="textModel" class="bg-white/10 border border-white/20 rounded-md px-2 py-0.5"></select></span>
-          <span>Image Model: <select id="imageModel" class="bg-white/10 border border-white/20 rounded-md px-2 py-0.5"></select></span>
-          <span>Voice: <select id="voice" class="bg-white/10 border border-white/20 rounded-md px-2 py-0.5">
+          <span>Model: <select id="textModel" class="bg-white/10 border border-white/20 rounded-md px-1 sm:px-2 py-0.5"></select></span>
+          <span>Image Model: <select id="imageModel" class="bg-white/10 border border-white/20 rounded-md px-1 sm:px-2 py-0.5"></select></span>
+          <span>Voice: <select id="voice" class="bg-white/10 border border-white/20 rounded-md px-1 sm:px-2 py-0.5">
             <option>alloy</option>
             <option>verse</option>
             <option>amber</option>
@@ -89,34 +89,34 @@
     </section>
 
     <!-- Content Grid -->
-    <section class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <section class="mt-4 sm:mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
       <!-- Answer / Images / Audio Output -->
-      <div class="lg:col-span-2 glass rounded-3xl shadow-glow p-5 min-h-[320px]">
-        <div id="result" class="prose prose-invert max-w-none">
+      <div class="lg:col-span-2 glass rounded-2xl sm:rounded-3xl shadow-glow p-3 sm:p-5 min-h-[220px] sm:min-h-[320px]">
+        <div id="result" class="prose prose-invert max-w-none text-sm sm:text-base">
           <p class="text-white/70">Results will appear here. Try a query, then switch modes (Answer / Images / Audio).</p>
         </div>
       </div>
 
       <!-- Live Feeds -->
-      <aside class="glass rounded-3xl shadow-glow p-5">
-        <h3 class="font-bold mb-3">Live Feeds</h3>
-        <div class="space-y-4">
+      <aside class="glass rounded-2xl sm:rounded-3xl shadow-glow p-3 sm:p-5">
+        <h3 class="font-bold mb-2 sm:mb-3 text-base sm:text-lg">Live Feeds</h3>
+        <div class="space-y-2 sm:space-y-4">
           <div>
-            <div class="text-sm font-semibold mb-1">Text Feed</div>
-            <div id="textFeed" class="text-xs max-h-44 overflow-auto space-y-2"></div>
+            <div class="text-xs sm:text-sm font-semibold mb-1">Text Feed</div>
+            <div id="textFeed" class="text-xs max-h-32 sm:max-h-44 overflow-auto space-y-1 sm:space-y-2"></div>
           </div>
           <div>
-            <div class="text-sm font-semibold mb-1">Image Feed</div>
-            <div id="imageFeed" class="grid grid-cols-3 gap-2 max-h-44 overflow-auto"></div>
+            <div class="text-xs sm:text-sm font-semibold mb-1">Image Feed</div>
+            <div id="imageFeed" class="grid grid-cols-2 sm:grid-cols-3 gap-1 sm:gap-2 max-h-32 sm:max-h-44 overflow-auto"></div>
           </div>
         </div>
       </aside>
     </section>
 
     <!-- Gallery (for Images mode) -->
-    <section id="gallerySection" class="hidden mt-6 glass rounded-3xl shadow-glow p-5">
-      <h3 class="font-bold mb-3">Image Results</h3>
-      <div id="gallery" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+    <section id="gallerySection" class="hidden mt-4 sm:mt-6 glass rounded-2xl sm:rounded-3xl shadow-glow p-3 sm:p-5">
+      <h3 class="font-bold mb-2 sm:mb-3 text-base sm:text-lg">Image Results</h3>
+      <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3"></div>
     </section>
   </main>
 
@@ -206,11 +206,19 @@
           const o = document.createElement('option');
           o.value = m.name || m.id || m;
           o.textContent = m.name || m.id || m;
-          if(/deepseek|qwen|phi|llama|mixtral/i.test(o.value)) o.selected = true;
+          if(o.value === 'deepseek-r1:free') o.selected = true; // Default to deepseek-r1:free
           els.textModel.appendChild(o);
         });
+        // If not found, add manually
+        if(!Array.from(els.textModel.options).some(opt => opt.value === 'deepseek-r1:free')) {
+          const o = document.createElement('option');
+          o.value = 'deepseek-r1:free';
+          o.textContent = 'deepseek-r1:free';
+          o.selected = true;
+          els.textModel.appendChild(o);
+        }
       } catch(e){
-        els.textModel.innerHTML = '<option>deepseek-r1:free</option>';
+        els.textModel.innerHTML = '<option selected>deepseek-r1:free</option>';
       }
     }
 
