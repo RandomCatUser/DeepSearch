@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DeepSearch • Pollinations AI Meta‑Search</title>
+  <title>DeepSearch : Chat</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -67,7 +67,7 @@
               <select id="mode" class="bg-white/10 border border-white/20 rounded-lg sm:rounded-xl px-1 sm:px-2 py-0.5 sm:py-1 text-xs sm:text-sm">
                 <option value="answer">Answer</option>
                 <option value="images">Images</option>
-                <option value="audio">Audio</option>
+                
               </select>
               <button class="btn btn-primary text-xs sm:text-sm" type="submit">Search</button>
             </div>
@@ -78,11 +78,7 @@
           <span class="hidden sm:inline">•</span>
           <span>Model: <select id="textModel" class="bg-white/10 border border-white/20 rounded-md px-1 sm:px-2 py-0.5"></select></span>
           <span>Image Model: <select id="imageModel" class="bg-white/10 border border-white/20 rounded-md px-1 sm:px-2 py-0.5"></select></span>
-          <span>Voice: <select id="voice" class="bg-white/10 border border-white/20 rounded-md px-1 sm:px-2 py-0.5">
-            <option>alloy</option>
-            <option>verse</option>
-            <option>amber</option>
-            <option>coral</option>
+          
           </select></span>
         </div>
       </div>
@@ -212,8 +208,8 @@
         // If not found, add manually
         if(!Array.from(els.textModel.options).some(opt => opt.value === 'deepseek-r1:free')) {
           const o = document.createElement('option');
-          o.value = 'deepseek-r1:free';
-          o.textContent = 'deepseek-r1:free';
+          o.value = 'qwen-coder';
+          o.textContent = 'qwen-coder';
           o.selected = true;
           els.textModel.appendChild(o);
         }
